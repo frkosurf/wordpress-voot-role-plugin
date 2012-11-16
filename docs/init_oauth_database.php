@@ -19,4 +19,3 @@ $pdo = new PDO($db);
             `request_uri` TEXT NOT NULL,
             PRIMARY KEY (`state`))
         ");
-?>
