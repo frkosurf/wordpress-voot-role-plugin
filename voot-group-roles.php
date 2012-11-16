@@ -49,6 +49,7 @@ function setUserRole($username, WP_User $user)
         $response = json_decode($response, TRUE);
         $groups = $response['entry'];
     } catch (OAuthTwoPdoCodeClientException $e) {
+        // FIXME: figure out how to throw nice error, maybe some Wordpress exception?
         $error = "ERROR (" . $e->getMessage() . ")";
         error_log($error);
         die($error);
