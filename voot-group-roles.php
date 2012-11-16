@@ -61,9 +61,11 @@ function setUserRole($username, WP_User $user)
         $role = "editor";
     } elseif (isMemberOf($config['authorRoleGroup'], $groups)) {
         $role = "author";
-    } else {
-        // everyone who succesfully authenticates will become a contributor
+    } elseif (isMemberOf($config['contributorRoleGroup'], $groups)) {
         $role = "contributor";
+    } else {
+        // everyone who succesfully authenticates will become a subscriber
+        $role = "subscriber";
     }
 
     if (!in_array($role, $user->roles) ) {
