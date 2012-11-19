@@ -1,12 +1,7 @@
 #!/bin/sh
 
-INSTALL_DIR=`pwd`
-
 # create directories
 mkdir -p data
-
-# create SQlite files
-touch data/client.sqlite
 
 # set permissions
 chmod -R o+w data/
@@ -20,7 +15,7 @@ do
     INI_FILE=`basename ${DEFAULTS_FILE} .defaults`
     if [ ! -f ${INI_FILE} ]
     then
-        cat ${DEFAULTS_FILE} | sed "s|/PATH/TO/APP|${INSTALL_DIR}|g" > ${INI_FILE}
+        cat ${DEFAULTS_FILE} > ${INI_FILE}
     fi
 done
 )

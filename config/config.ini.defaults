@@ -1,9 +1,3 @@
-; Database
-PdoPersistentConnection = FALSE
-PdoDsn = "sqlite:/PATH/TO/APP/data/client.sqlite"
-PdoUser = NULL
-PdoPass = NULL
-
 ; OAuth Client Registration Information obtained from API service
 clientId     = "demo"
 clientSecret = "foo"

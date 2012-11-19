@@ -10,8 +10,13 @@
 
 require_once 'extlib/php-oauth-client/lib/OAuthTwoPdoCodeClient.php';
 
+global $vgr_db_version;
+$vgr_db_version = "1.0";
+
 add_action('wp_login', 'vgr_set_user_role', 10, 2);
 add_action('auth_cookie_valid', 'vgr_handle_authorization_code_response', 10, 2);
+
+register_activation_hook(__FILE__,'vgr_install');
 
 function vgr_handle_authorization_code_response($cookie_elements, WP_User $user)
 {
@@ -36,6 +41,8 @@ function vgr_handle_authorization_code_response($cookie_elements, WP_User $user)
 
 function vgr_set_user_role($username, WP_User $user)
 {
+    global $wpdb;
+
     error_log("ACTION: wp_login");
    
     // determine where the user wants to go after logging in...
@@ -60,6 +67,13 @@ function vgr_set_user_role($username, WP_User $user)
     $config = parse_ini_file("config/config.ini");
     $groups = array();
     try {
+	$config += array(
+            'PdoDsn' => 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME,
+            'PdoUser' => DB_USER,
+            'PdoPass' => DB_PASSWORD,
+            'PdoPersistentConnection' => FALSE,
+            'DbPrefix' => $wpdb->prefix,
+        );
         $client = new OAuthTwoPdoCodeClient($config);
         $client->setLogFile(__DIR__ . "/data/log.txt");
         $client->setScope("read");
@@ -107,4 +121,35 @@ function vgr_is_member_of($group, array $groups)
     }
 
     return FALSE;
+}
+
+function vgr_install() 
+{
+    global $wpdb;
+    global $vgr_db_version;
+
+    $tokens_table_name = $wpdb->prefix . "oauth2_tokens";
+    $states_table_name = $wpdb->prefix . "oauth2_states";
+  
+    $tokens_sql = "CREATE TABLE $tokens_table_name (
+        access_token VARCHAR(64) NOT NULL,
+        resource_owner_id VARCHAR(64) NOT NULL,
+        issue_time INT(11) NOT NULL,
+        expires_in INT(11) NOT NULL,
+        scope TEXT NOT NULL,
+        refresh_token TEXT DEFAULT NULL,
+        PRIMARY KEY (access_token)
+    )";
+
+    $states_sql = "CREATE TABLE $states_table_name (
+        state VARCHAR(64) NOT NULL,
+        request_uri TEXT NOT NULL,
+        PRIMARY KEY (state)
+    )";
+
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($tokens_sql);
+    dbDelta($states_sql);
+ 
+    add_option("vgr_db_version", $vgr_db_version);
 }
