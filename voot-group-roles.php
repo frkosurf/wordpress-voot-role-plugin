@@ -37,6 +37,25 @@ function handleAuthorizationCodeResponse($cookie_elements, WP_User $user)
 function setUserRole($username, WP_User $user)
 {
     error_log("ACTION: wp_login");
+   
+    // determine where the user wants to go after logging in...
+    $returnUri = NULL;
+    if(array_key_exists("HTTP_REFERER", $_SERVER)) {
+        $referrer = $_SERVER['HTTP_REFERER'];
+        $query = parse_url($referrer, PHP_URL_QUERY);
+        if(FALSE !== $query && NULL !== $query) {
+            parse_str($query, $queryArray);
+            if(is_array($queryArray) && !empty($queryArray)) { 
+                if(array_key_exists("redirect_to", $queryArray)) {
+                    $returnUri = urldecode($queryArray["redirect_to"]);
+                }
+            }
+        }
+    }
+    if(NULL === $returnUri) {
+        $returnUri = admin_url();
+    }
+    error_log("returnUri: $returnUri");
 
     $config = parse_ini_file("config/config.ini");
     $groups = array();
@@ -45,6 +64,7 @@ function setUserRole($username, WP_User $user)
         $client->setLogFile(__DIR__ . "/data/log.txt");
         $client->setScope("read");
         $client->setResourceOwnerId($user->ID); // use Wordpress userId
+        $client->setReturnUri($returnUri);
         $response = $client->makeRequest($config['apiEndpoint'] . "/groups/@me");
         $response = json_decode($response, TRUE);
         $groups = $response['entry'];
