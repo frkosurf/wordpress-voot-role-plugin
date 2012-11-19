@@ -10,17 +10,17 @@
 
 require_once 'extlib/php-oauth-client/lib/OAuthTwoPdoCodeClient.php';
 
-add_action('wp_login', 'setUserRole', 10, 2);
-add_action('auth_cookie_valid', 'handleAuthorizationCodeResponse', 10, 2);
+add_action('wp_login', 'vgr_set_user_role', 10, 2);
+add_action('auth_cookie_valid', 'vgr_handle_authorization_code_response', 10, 2);
 
-function handleAuthorizationCodeResponse($cookie_elements, WP_User $user)
+function vgr_handle_authorization_code_response($cookie_elements, WP_User $user)
 {
     error_log("ACTION: auth_cookie_valid");
 
     if (array_key_exists("state", $_GET)) {
         if (array_key_exists("code", $_GET)) {
             // authorization code available, continue with OAuth token fetching
-            setUserRole($user->user_login, $user);
+            vgr_set_user_role($user->user_login, $user);
         } elseif (array_key_exists("error", $_GET)) {
             // FIXME: figure out how to throw nice error, maybe some Wordpress exception?
             if (array_key_exists("error_description", $_GET)) {
@@ -34,7 +34,7 @@ function handleAuthorizationCodeResponse($cookie_elements, WP_User $user)
     }
 }
 
-function setUserRole($username, WP_User $user)
+function vgr_set_user_role($username, WP_User $user)
 {
     error_log("ACTION: wp_login");
    
@@ -76,13 +76,13 @@ function setUserRole($username, WP_User $user)
     }
 
     // FIXME: is there a way to enumerate all possible roles?
-    if (isMemberOf($config['administratorRoleGroup'], $groups)) {
+    if (vgr_is_member_of($config['administratorRoleGroup'], $groups)) {
         $role = "administrator";
-    } elseif (isMemberOf($config['editorRoleGroup'], $groups)) {
+    } elseif (vgr_is_member_of($config['editorRoleGroup'], $groups)) {
         $role = "editor";
-    } elseif (isMemberOf($config['authorRoleGroup'], $groups)) {
+    } elseif (vgr_is_member_of($config['authorRoleGroup'], $groups)) {
         $role = "author";
-    } elseif (isMemberOf($config['contributorRoleGroup'], $groups)) {
+    } elseif (vgr_is_member_of($config['contributorRoleGroup'], $groups)) {
         $role = "contributor";
     } else {
         // everyone who succesfully authenticates will become a subscriber
@@ -98,7 +98,7 @@ function setUserRole($username, WP_User $user)
     return;
 }
 
-function isMemberOf($group, array $groups)
+function vgr_is_member_of($group, array $groups)
 {
     foreach ($groups as $g) {
         if ($g['id'] === $group) {
