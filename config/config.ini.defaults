@@ -1,6 +1,6 @@
-; OAuth Client Registration Information obtained from API service
-clientId     = "demo"
-clientSecret = "foo"
+; OAuth Client Registration Information
+clientId     = "wordpress-voot-roles"
+clientSecret = "foobar"
 
 ; Playground Environment
 authorizeEndpoint = "http://localhost/php-oauth/authorize.php"

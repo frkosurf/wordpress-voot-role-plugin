@@ -1,8 +1,8 @@
 <?php
 /*
-    Plugin Name: VOOT Role Management
+    Plugin Name: VOOT Roles
     Plugin URI: https://github.com/fkooman/wordpress-voot-role-plugin/
-    Description: Sets the role of the user based on group memberships.
+    Description: Sets the role of the user based on VOOT group memberships.
     Author: François Kooman <fkooman@tuxed.net>
     Version: 0.1
     Author URI: http://fkooman.wordpress.com/
@@ -10,22 +10,22 @@
 
 require_once 'extlib/php-oauth-client/lib/OAuthTwoPdoCodeClient.php';
 
-global $vgr_db_version;
-$vgr_db_version = "1.0";
+global $vr_db_version;
+$vr_db_version = "1.0";
 
-add_action('wp_login', 'vgr_set_user_role', 10, 2);
-add_action('auth_cookie_valid', 'vgr_handle_authorization_code_response', 10, 2);
+add_action('wp_login', 'vr_set_user_role', 10, 2);
+add_action('auth_cookie_valid', 'vr_handle_authorization_code_response', 10, 2);
 
-register_activation_hook(__FILE__,'vgr_install');
+register_activation_hook(__FILE__,'vr_install');
 
-function vgr_handle_authorization_code_response($cookie_elements, WP_User $user)
+function vr_handle_authorization_code_response($cookie_elements, WP_User $user)
 {
     error_log("ACTION: auth_cookie_valid");
 
     if (array_key_exists("state", $_GET)) {
         if (array_key_exists("code", $_GET)) {
             // authorization code available, continue with OAuth token fetching
-            vgr_set_user_role($user->user_login, $user);
+            vr_set_user_role($user->user_login, $user);
         } elseif (array_key_exists("error", $_GET)) {
             // FIXME: figure out how to throw nice error, maybe some Wordpress exception?
             if (array_key_exists("error_description", $_GET)) {
@@ -39,7 +39,7 @@ function vgr_handle_authorization_code_response($cookie_elements, WP_User $user)
     }
 }
 
-function vgr_set_user_role($username, WP_User $user)
+function vr_set_user_role($username, WP_User $user)
 {
     global $wpdb;
 
@@ -90,13 +90,13 @@ function vgr_set_user_role($username, WP_User $user)
     }
 
     // FIXME: is there a way to enumerate all possible roles?
-    if (vgr_is_member_of($config['administratorRoleGroup'], $groups)) {
+    if (vr_is_member_of($config['administratorRoleGroup'], $groups)) {
         $role = "administrator";
-    } elseif (vgr_is_member_of($config['editorRoleGroup'], $groups)) {
+    } elseif (vr_is_member_of($config['editorRoleGroup'], $groups)) {
         $role = "editor";
-    } elseif (vgr_is_member_of($config['authorRoleGroup'], $groups)) {
+    } elseif (vr_is_member_of($config['authorRoleGroup'], $groups)) {
         $role = "author";
-    } elseif (vgr_is_member_of($config['contributorRoleGroup'], $groups)) {
+    } elseif (vr_is_member_of($config['contributorRoleGroup'], $groups)) {
         $role = "contributor";
     } else {
         // everyone who succesfully authenticates will become a subscriber
@@ -112,7 +112,7 @@ function vgr_set_user_role($username, WP_User $user)
     return;
 }
 
-function vgr_is_member_of($group, array $groups)
+function vr_is_member_of($group, array $groups)
 {
     foreach ($groups as $g) {
         if ($g['id'] === $group) {
@@ -123,10 +123,10 @@ function vgr_is_member_of($group, array $groups)
     return FALSE;
 }
 
-function vgr_install() 
+function vr_install() 
 {
     global $wpdb;
-    global $vgr_db_version;
+    global $vr_db_version;
 
     $tokens_table_name = $wpdb->prefix . "oauth2_tokens";
     $states_table_name = $wpdb->prefix . "oauth2_states";
@@ -151,5 +151,5 @@ function vgr_install()
     dbDelta($tokens_sql);
     dbDelta($states_sql);
  
-    add_option("vgr_db_version", $vgr_db_version);
+    add_option("vr_db_version", $vr_db_version);
 }
