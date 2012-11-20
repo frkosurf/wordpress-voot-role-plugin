@@ -90,6 +90,7 @@ function vr_set_user_role($username, WP_User $user)
     }
 
     // FIXME: is there a way to enumerate all possible roles?
+    // Yes there is: use WP_Roles class
     if (vr_is_member_of($config['administratorRoleGroup'], $groups)) {
         $role = "administrator";
     } elseif (vr_is_member_of($config['editorRoleGroup'], $groups)) {
