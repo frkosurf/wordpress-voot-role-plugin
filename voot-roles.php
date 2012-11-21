@@ -72,7 +72,8 @@ function vr_set_user_role($username, WP_User $user)
             'PdoUser' => DB_USER,
             'PdoPass' => DB_PASSWORD,
             'PdoPersistentConnection' => FALSE,
-            'DbPrefix' => $wpdb->prefix,
+            'StatesTableName' => $wpdb->prefix . 'voot_roles_oauth_states',
+            'TokensTableName' => $wpdb->prefix . 'voot_roles_oauth_tokens',
         );
         $client = new OAuthTwoPdoCodeClient($config);
         $client->setLogFile(__DIR__ . "/data/log.txt");
@@ -129,8 +130,8 @@ function vr_install()
     global $wpdb;
     global $vr_db_version;
 
-    $tokens_table_name = $wpdb->prefix . "oauth2_tokens";
-    $states_table_name = $wpdb->prefix . "oauth2_states";
+    $tokens_table_name = $wpdb->prefix . "voot_roles_oauth_tokens";
+    $states_table_name = $wpdb->prefix . "voot_roles_oauth_states";
   
     $tokens_sql = "CREATE TABLE $tokens_table_name (
         access_token VARCHAR(64) NOT NULL,
