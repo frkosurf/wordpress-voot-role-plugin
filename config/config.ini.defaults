@@ -7,10 +7,17 @@ authorizeEndpoint = "http://localhost/php-oauth/authorize.php"
 tokenEndpoint     = "http://localhost/php-oauth/token.php"
 apiEndpoint       = "http://localhost/php-voot-proxy/voot.php"
 
+; The 'redirectUri' parameter is only needed if this was not part
+; of the client registration and should point to the Wordpress 
+; installation directory or host
+;redirectUri       = "http://localhost/wordpress/"
+
 ; SURFconext
 ;authorizeEndpoint = "https://api.surfconext.nl/v1/oauth2/authorize"
 ;tokenEndpoint     = "https://api.surfconext.nl/v1/oauth2/token"
 ;apiEndpoint       = "https://api.surfconext.nl/v1/social/rest"
+; For SURFconext API the redirectUri parameter MUST be set
+;redirectUri       = "https://www.example.org/wordpress/"
 
 ; set the group ID to the specific role. Membership of this group implies you
 ; will get that particular role
