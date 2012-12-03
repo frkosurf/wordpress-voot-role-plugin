@@ -78,7 +78,7 @@ function vr_set_role($username, WP_User $user)
         $response = $client->makeRequest($apiEndpoint . "/groups/@me");
 
         // FIXME: verify the response
-        $response = json_decode($response, TRUE);
+        $response = json_decode($response->getContent(), TRUE);
         $groups = $response['entry'];
 
     } catch (\OAuth\Client\ApiException $e) {
