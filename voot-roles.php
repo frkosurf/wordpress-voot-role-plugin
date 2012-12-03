@@ -58,7 +58,7 @@ function vr_is_member_of($group, array $groups)
 function vr_set_role($username, WP_User $user)
 {
     error_log("ACTION: wp_login");
-    $config = parse_ini_file("config/config.ini");
+    $config = parse_ini_file("config/config.ini", TRUE);
 
     $clientPath = $config['OAuth']['clientPath'];
     require_once $clientPath . DIRECTORY_SEPARATOR . "lib" . DIRECTORY_SEPARATOR . "_autoload.php";
