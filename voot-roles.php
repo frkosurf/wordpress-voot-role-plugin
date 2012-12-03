@@ -4,7 +4,7 @@
     Plugin URI: https://github.com/fkooman/wordpress-voot-role-plugin/
     Description: Sets the role of the user based on VOOT group memberships.
     Author: François Kooman <fkooman@tuxed.net>
-    Version: 0.1
+    Version: 0.2
     Author URI: http://fkooman.wordpress.com/
  */
 
@@ -15,7 +15,7 @@ add_action('wp_login', 'vr_set_role', 10, 2);
  * Determine the URI the user wants to return to after succesfully obtaining
  * the group membership information from the VOOT API
  */
-function vr_determine_return_uri() 
+function vr_determine_return_uri()
 {
     // determine where the user wants to go after logging in...
     $returnUri = NULL;
@@ -35,6 +35,7 @@ function vr_determine_return_uri()
         $returnUri = admin_url();
     }
     error_log("returnUri: $returnUri");
+
     return $returnUri;
 }
 
@@ -57,7 +58,6 @@ function vr_is_member_of($group, array $groups)
  */
 function vr_set_role($username, WP_User $user)
 {
-    error_log("ACTION: wp_login");
     $config = parse_ini_file("config/config.ini", TRUE);
 
     $clientPath = $config['OAuth']['clientPath'];
@@ -82,14 +82,12 @@ function vr_set_role($username, WP_User $user)
         $groups = $response['entry'];
 
     } catch (\OAuth\Client\ApiException $e) {
-        // FIXME: figure out how to throw nice error, maybe some Wordpress exception?
         $message = "ERROR (" . $e->getMessage() . ")";
         error_log($message);
         die($message);
     }
 
-    // FIXME: is there a way to enumerate all possible roles?
-    // Yes there is: use WP_Roles class
+    // FIXME: use WP_Roles to go through all registered roles
     if (vr_is_member_of($config['administratorRoleGroup'], $groups)) {
         $role = "administrator";
     } elseif (vr_is_member_of($config['editorRoleGroup'], $groups)) {
