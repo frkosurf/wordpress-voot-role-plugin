@@ -8,86 +8,84 @@
     Author URI: http://fkooman.wordpress.com/
  */
 
-require_once 'extlib/php-oauth-client/lib/OAuthTwoPdoCodeClient.php';
+add_action('wp_login', 'vr_set_role', 10, 2);
+//add_action('auth_cookie_valid', 'vr_handle_authorization_code_response', 10, 2);
 
-global $vr_db_version;
-$vr_db_version = "1.0";
-
-add_action('wp_login', 'vr_set_user_role', 10, 2);
-add_action('auth_cookie_valid', 'vr_handle_authorization_code_response', 10, 2);
-
-register_activation_hook(__FILE__,'vr_install');
-
-function vr_handle_authorization_code_response($cookie_elements, WP_User $user)
+/**
+ * Determine the URI the user wants to return to after succesfully obtaining
+ * the group membership information from the VOOT API
+ */
+function vr_determine_return_uri() 
 {
-    error_log("ACTION: auth_cookie_valid");
-
-    if (array_key_exists("state", $_GET)) {
-        if (array_key_exists("code", $_GET)) {
-            // authorization code available, continue with OAuth token fetching
-            vr_set_user_role($user->user_login, $user);
-        } elseif (array_key_exists("error", $_GET)) {
-            // FIXME: figure out how to throw nice error, maybe some Wordpress exception?
-            if (array_key_exists("error_description", $_GET)) {
-                $error = "ERROR (" . $_GET["error"] . "): " . $_GET['error_description'];
-            } else {
-                $error = "ERROR (" . $_GET["error"] . ")";
-            }
-            error_log($error);
-            die($error);
-        }
-    }
-}
-
-function vr_set_user_role($username, WP_User $user)
-{
-    global $wpdb;
-
-    error_log("ACTION: wp_login");
-   
     // determine where the user wants to go after logging in...
     $returnUri = NULL;
-    if(array_key_exists("HTTP_REFERER", $_SERVER)) {
+    if (array_key_exists("HTTP_REFERER", $_SERVER)) {
         $referrer = $_SERVER['HTTP_REFERER'];
         $query = parse_url($referrer, PHP_URL_QUERY);
-        if(FALSE !== $query && NULL !== $query) {
+        if (FALSE !== $query && NULL !== $query) {
             parse_str($query, $queryArray);
-            if(is_array($queryArray) && !empty($queryArray)) { 
-                if(array_key_exists("redirect_to", $queryArray)) {
+            if (is_array($queryArray) && !empty($queryArray)) {
+                if (array_key_exists("redirect_to", $queryArray)) {
                     $returnUri = urldecode($queryArray["redirect_to"]);
                 }
             }
         }
     }
-    if(NULL === $returnUri) {
+    if (NULL === $returnUri) {
         $returnUri = admin_url();
     }
     error_log("returnUri: $returnUri");
+    return $returnUri;
+}
 
+/**
+ * Figure out whether a group identifier is contained within a VOOT result set
+ */
+function vr_is_member_of($group, array $groups)
+{
+    foreach ($groups as $g) {
+        if ($g['id'] === $group) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+/**
+ *
+ */
+function vr_set_role($username, WP_User $user)
+{
+    error_log("ACTION: wp_login");
     $config = parse_ini_file("config/config.ini");
+
+    $clientPath = $config['OAuth']['clientPath'];
+    require_once $clientPath . DIRECTORY_SEPARATOR . "lib" . DIRECTORY_SEPARATOR . "_autoload.php";
+
     $groups = array();
+
     try {
-	$config += array(
-            'PdoDsn' => 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME,
-            'PdoUser' => DB_USER,
-            'PdoPass' => DB_PASSWORD,
-            'PdoPersistentConnection' => FALSE,
-            'StatesTableName' => $wpdb->prefix . 'voot_roles_oauth_states',
-            'TokensTableName' => $wpdb->prefix . 'voot_roles_oauth_tokens',
-        );
-        $client = new OAuthTwoPdoCodeClient($config);
-        $client->setLogFile(__DIR__ . "/data/log.txt");
+        $appId = $config['OAuth']['appId'];
+
+        $client = new \OAuth\Client\Api($appId);
+        $client->setUserId($user->ID);
         $client->setScope("read");
-        $client->setResourceOwnerId($user->ID); // use Wordpress userId
-        $client->setReturnUri($returnUri);
-        $response = $client->makeRequest($config['apiEndpoint'] . "/groups/@me");
+        $client->setReturnUri(vr_determine_return_uri());
+
+        $apiEndpoint = $config['OAuth']['apiEndpoint'];
+
+        $response = $client->makeRequest($apiEndpoint . "/groups/@me");
+
+        // FIXME: verify the response
         $response = json_decode($response, TRUE);
         $groups = $response['entry'];
-    } catch (OAuthTwoPdoCodeClientException $e) {
+
+    } catch (\OAuth\Client\ApiException $e) {
         // FIXME: figure out how to throw nice error, maybe some Wordpress exception?
-        $error = "ERROR (" . $e->getMessage() . ")";
-        error_log($error);
-        die($error);
+        $message = "ERROR (" . $e->getMessage() . ")";
+        error_log($message);
+        die($message);
     }
 
     // FIXME: is there a way to enumerate all possible roles?
@@ -109,49 +107,4 @@ function vr_set_user_role($username, WP_User $user)
         $user->set_role($role);
         wp_update_user(array('ID' => $user->ID, 'role' => $role));
     }
-
-    // FIXME: maybe we should return TRUE or FALSE?!
-    return;
-}
-
-function vr_is_member_of($group, array $groups)
-{
-    foreach ($groups as $g) {
-        if ($g['id'] === $group) {
-            return TRUE;
-        }
-    }
-
-    return FALSE;
-}
-
-function vr_install() 
-{
-    global $wpdb;
-    global $vr_db_version;
-
-    $tokens_table_name = $wpdb->prefix . "voot_roles_oauth_tokens";
-    $states_table_name = $wpdb->prefix . "voot_roles_oauth_states";
-  
-    $tokens_sql = "CREATE TABLE $tokens_table_name (
-        access_token VARCHAR(64) NOT NULL,
-        resource_owner_id VARCHAR(64) NOT NULL,
-        issue_time INT(11) NOT NULL,
-        expires_in INT(11) NOT NULL,
-        scope TEXT NOT NULL,
-        refresh_token TEXT DEFAULT NULL,
-        PRIMARY KEY (access_token)
-    )";
-
-    $states_sql = "CREATE TABLE $states_table_name (
-        state VARCHAR(64) NOT NULL,
-        request_uri TEXT NOT NULL,
-        PRIMARY KEY (state)
-    )";
-
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-    dbDelta($tokens_sql);
-    dbDelta($states_sql);
- 
-    add_option("vr_db_version", $vr_db_version);
 }

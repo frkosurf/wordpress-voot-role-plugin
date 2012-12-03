@@ -9,10 +9,9 @@ set in Wordpress for that user.
 # Configuration
 Perform the following commands:
 
-    $ sh docs/install_dependencies.sh
     $ sh docs/configure.sh
 
 Now you can modify the `config/config.ini` file to configure:
-* The OAuth authorization server
-* The VOOT API endpoint
+* The php-oauth-client location
+* The client identifier in the OAuth client
 * The mapping between Wordpress roles and VOOT group membership

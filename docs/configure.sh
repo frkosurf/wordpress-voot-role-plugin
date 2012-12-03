@@ -1,12 +1,5 @@
 #!/bin/sh
 
-# create directories
-mkdir -p data
-
-# set permissions
-chmod -R o+w data/
-chcon -R -t httpd_sys_rw_content_t data/
-
 # generate config files
 (
 cd config/
@@ -19,4 +12,3 @@ do
     fi
 done
 )
-
