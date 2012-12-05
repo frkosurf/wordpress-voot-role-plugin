@@ -8,8 +8,8 @@
     Author URI: http://fkooman.wordpress.com/
  */
 
-add_action('wp_login', 'vr_set_role', 10, 2);
-//add_action('auth_cookie_valid', 'vr_handle_authorization_code_response', 10, 2);
+add_action('wp_login',     'vr_set_fetch_voot_role', 10, 2);
+add_filter('authenticate', 'vr_set_role',            40, 3);
 
 /**
  * Determine the URI the user wants to return to after succesfully obtaining
@@ -53,11 +53,25 @@ function vr_is_member_of($group, array $groups)
     return FALSE;
 }
 
+function vr_set_fetch_voot_role($username, WP_User $user)
+{
+    error_log("vr_set_fetch_voot_role");
+    update_user_meta($user->ID, "fetch_voot_role", TRUE);
+}
+
 /**
  *
  */
-function vr_set_role($username, WP_User $user)
+function vr_set_role(WP_User $user, $username, $password)
 {
+    error_log("vr_set_role");
+
+    $fetchVootRole = get_user_meta($user->ID, "fetch_voot_role", TRUE);
+    if ("" === $fetchVootRole || FALSE === $fetchVootRole) {
+        // no need to fetch the VOOT role
+        return $user;
+    }
+
     $config = parse_ini_file("config/config.ini", TRUE);
 
     $clientPath = $config['OAuth']['clientPath'];
@@ -101,8 +115,14 @@ function vr_set_role($username, WP_User $user)
         $role = "subscriber";
     }
 
-    if (!in_array($role, $user->roles) ) {
+    if (!in_array($role, $user->roles)) {
         $user->set_role($role);
         wp_update_user(array('ID' => $user->ID, 'role' => $role));
     }
+
+    // we fetched the role of the user and set the role accordingly, now set
+    // it to FALSE until next wp_login
+    update_user_meta($user->ID, "fetch_voot_role", FALSE);
+
+    return $user;
 }
