@@ -53,6 +53,9 @@ function vr_is_member_of($group, array $groups)
     return FALSE;
 }
 
+/**
+ * We only want the roles to be fetched when the user logs in...
+ */
 function vr_set_fetch_voot_role($username, WP_User $user)
 {
     error_log("vr_set_fetch_voot_role");
@@ -60,7 +63,8 @@ function vr_set_fetch_voot_role($username, WP_User $user)
 }
 
 /**
- *
+ * Fetch and set the role the user has according to the VOOT membership and
+ * the role to group membership mapping
  */
 function vr_set_role($user, $username, $password)
 {
@@ -97,7 +101,7 @@ function vr_set_role($user, $username, $password)
 
         $response = $client->makeRequest($apiEndpoint . "/groups/@me");
 
-        // FIXME: verify the response
+        // FIXME: verify the response from the VOOT service
         $response = json_decode($response->getContent(), TRUE);
         $groups = $response['entry'];
 
