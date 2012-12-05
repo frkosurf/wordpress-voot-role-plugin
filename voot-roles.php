@@ -75,7 +75,7 @@ function vr_set_role($cookie, WP_User $user)
         return;
     }
 
-    $config = parse_ini_file("config/config.ini", TRUE);
+    $config = parse_ini_file("config/vr.ini", TRUE);
 
     $clientPath = $config['OAuth']['clientPath'];
     require_once $clientPath . DIRECTORY_SEPARATOR . "lib" . DIRECTORY_SEPARATOR . "_autoload.php";
@@ -90,7 +90,7 @@ function vr_set_role($cookie, WP_User $user)
         $client->setScope("read");
         $client->setReturnUri(vr_determine_return_uri());
 
-        $apiEndpoint = $config['OAuth']['apiEndpoint'];
+        $apiEndpoint = $config['Voot']['apiEndpoint'];
 
         $response = $client->makeRequest($apiEndpoint . "/groups/@me");
 
@@ -105,13 +105,13 @@ function vr_set_role($cookie, WP_User $user)
     }
 
     // FIXME: use WP_Roles to go through all registered roles
-    if (vr_is_member_of($config['administratorRoleGroup'], $groups)) {
+    if (vr_is_member_of($config['Voot']['administratorRoleGroup'], $groups)) {
         $role = "administrator";
-    } elseif (vr_is_member_of($config['editorRoleGroup'], $groups)) {
+    } elseif (vr_is_member_of($config['Voot']['editorRoleGroup'], $groups)) {
         $role = "editor";
-    } elseif (vr_is_member_of($config['authorRoleGroup'], $groups)) {
+    } elseif (vr_is_member_of($config['Voot']['authorRoleGroup'], $groups)) {
         $role = "author";
-    } elseif (vr_is_member_of($config['contributorRoleGroup'], $groups)) {
+    } elseif (vr_is_member_of($config['Voot']['contributorRoleGroup'], $groups)) {
         $role = "contributor";
     } else {
         // everyone who succesfully authenticates will become a subscriber

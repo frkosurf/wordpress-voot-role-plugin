@@ -1,11 +1,13 @@
+[OAuth]
+clientPath = '/var/www/html/php-oauth-client'
+appId      = 'wordpress'
+
+[Voot]
+apiEndpoint = 'http://localhost/php-voot-proxy/voot.php'
+
 ; set the group ID to the specific role. Membership of this group implies you
 ; will get that particular role
 administratorRoleGroup = "urn:groups:demo:wp_administrators"
 editorRoleGroup        = "urn:groups:demo:wp_editors"
 authorRoleGroup        = "urn:groups:demo:wp_authors"
 contributorRoleGroup   = "urn:groups:demo:wp_contributors"
-
-[OAuth]
-clientPath  = '/var/www/html/php-oauth-client'
-appId       = 'wordpress'
-apiEndpoint = 'http://localhost/php-voot-proxy/voot.php'

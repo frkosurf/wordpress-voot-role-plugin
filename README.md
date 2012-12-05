@@ -7,11 +7,10 @@ role. When a user is a member of this group the role associated with it is
 set in Wordpress for that user.
 
 # Configuration
-Perform the following commands:
+Perform the following command:
 
-    $ sh docs/configure.sh
+    $ cp config/vr.ini.default config/vr.ini
 
-Now you can modify the `config/config.ini` file to configure:
-* The php-oauth-client location
-* The client identifier in the OAuth client
-* The mapping between Wordpress roles and VOOT group membership
+Now you can modify the `config/vr.ini` file to configure:
+* The php-oauth-client configuration (installation location and appId)
+* The VOOT apiEndpoint and mapping between Wordpress roles and VOOT group membership
