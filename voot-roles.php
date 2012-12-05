@@ -8,8 +8,8 @@
     Author URI: http://fkooman.wordpress.com/
  */
 
-add_action('wp_login',     'vr_set_fetch_voot_role', 10, 2);
-add_filter('authenticate', 'vr_set_role',            40, 3);
+add_action('wp_login',          'vr_set_fetch_voot_role_meta', 10, 2);
+add_action('auth_cookie_valid', 'vr_set_role',                 10, 2);
 
 /**
  * Determine the URI the user wants to return to after succesfully obtaining
@@ -54,11 +54,10 @@ function vr_is_member_of($group, array $groups)
 }
 
 /**
- * We only want the roles to be fetched when the user logs in...
+ * Set the user meta/key value to fetch the VOOT role, this is set at login time
  */
-function vr_set_fetch_voot_role($username, WP_User $user)
+function vr_set_fetch_voot_role_meta($username, WP_User $user)
 {
-    error_log("vr_set_fetch_voot_role");
     update_user_meta($user->ID, "fetch_voot_role", TRUE);
 }
 
@@ -66,21 +65,15 @@ function vr_set_fetch_voot_role($username, WP_User $user)
  * Fetch and set the role the user has according to the VOOT membership and
  * the role to group membership mapping
  */
-function vr_set_role($user, $username, $password)
+function vr_set_role($cookie, WP_User $user)
 {
     error_log("vr_set_role");
 
-    if($user instanceof WP_Error) {
-        return $user;
-    }
-
+    // only fetch the VOOT role if the user just logged in...
     $fetchVootRole = get_user_meta($user->ID, "fetch_voot_role", TRUE);
     if ("" === $fetchVootRole || FALSE === $fetchVootRole) {
-        // no need to fetch the VOOT role
-        return $user;
+        return;
     }
-
-    error_log("fetching voot role...");
 
     $config = parse_ini_file("config/config.ini", TRUE);
 
@@ -133,6 +126,4 @@ function vr_set_role($user, $username, $password)
     // we fetched the role of the user and set the role accordingly, now set
     // it to FALSE until next wp_login
     update_user_meta($user->ID, "fetch_voot_role", FALSE);
-
-    return $user;
 }
