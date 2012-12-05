@@ -14,3 +14,18 @@ Perform the following command:
 Now you can modify the `config/vr.ini` file to configure:
 * The php-oauth-client configuration (installation location and appId)
 * The VOOT apiEndpoint and mapping between Wordpress roles and VOOT group membership
+
+The configuration snippet for the `php-oauth-client` is like this, assuming
+you are left the `appId` at the default `wordpress` and want to use this plugin
+with SURFconext:
+
+    {
+        "wordpress": {
+            "authorize_endpoint": "https://api.surfconext.nl/v1/oauth2/authorize", 
+            "client_id": "REPLACE_ME_WITH_CLIENT_ID", 
+            "client_secret": "REPLACE_ME_WITH_CLIENT_SECRET", 
+            "token_endpoint": "https://api.surfconext.nl/v1/oauth2/token"
+        }
+    }
+
+See the `php-oauth-client` documentation on how to register an application.
