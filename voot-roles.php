@@ -62,9 +62,13 @@ function vr_set_fetch_voot_role($username, WP_User $user)
 /**
  *
  */
-function vr_set_role(WP_User $user, $username, $password)
+function vr_set_role($user, $username, $password)
 {
     error_log("vr_set_role");
+
+    if($user instanceof WP_Error) {
+        return $user;
+    }
 
     $fetchVootRole = get_user_meta($user->ID, "fetch_voot_role", TRUE);
     if ("" === $fetchVootRole || FALSE === $fetchVootRole) {
