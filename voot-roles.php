@@ -6,6 +6,7 @@
     Author: François Kooman <fkooman@tuxed.net>
     Version: 0.2
     Author URI: http://fkooman.wordpress.com/
+    License: GPLv3
  */
 
 add_action('wp_login',          'vr_set_fetch_voot_role_meta', 10, 2);
@@ -94,11 +95,12 @@ function vr_set_role($cookie, WP_User $user)
 
         $response = $client->makeRequest($apiEndpoint . "/groups/@me");
 
-        // FIXME: verify the response from the VOOT service
+        // FIXME: verify the response code/content from the VOOT service
         $response = json_decode($response->getContent(), TRUE);
         $groups = $response['entry'];
 
     } catch (\OAuth\Client\ApiException $e) {
+        // FIXME: we probably should just return, if it didn't work out...well
         $message = "ERROR (" . $e->getMessage() . ")";
         error_log($message);
         die($message);
