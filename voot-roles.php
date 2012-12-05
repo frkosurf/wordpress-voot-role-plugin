@@ -71,7 +71,7 @@ function vr_set_role($cookie, WP_User $user)
 
     // only fetch the VOOT role if the user just logged in...
     $fetchVootRole = get_user_meta($user->ID, "fetch_voot_role", TRUE);
-    if ("" === $fetchVootRole || FALSE === $fetchVootRole) {
+    if (TRUE === $fetchVootRole) {
         return;
     }
 
