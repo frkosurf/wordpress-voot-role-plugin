@@ -76,6 +76,8 @@ function vr_set_role($user, $username, $password)
         return $user;
     }
 
+    error_log("fetching voot role...");
+
     $config = parse_ini_file("config/config.ini", TRUE);
 
     $clientPath = $config['OAuth']['clientPath'];
