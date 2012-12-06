@@ -53,7 +53,6 @@ function vr_determine_return_uri()
     if (NULL === $returnUri) {
         $returnUri = admin_url();
     }
-    error_log("returnUri: $returnUri");
 
     return $returnUri;
 }
@@ -73,7 +72,8 @@ function vr_is_member_of($group, array $groups)
 }
 
 /**
- * Set the user meta/key value to fetch the VOOT role, this is set at login time
+ * Set the user meta/key value to fetch the VOOT role, this is set at login
+ * time
  */
 function vr_set_fetch_voot_role_meta($username, WP_User $user)
 {
@@ -86,15 +86,17 @@ function vr_set_fetch_voot_role_meta($username, WP_User $user)
  */
 function vr_set_role($cookie, WP_User $user)
 {
-    error_log("vr_set_role");
-
     // only fetch the VOOT role if the user just logged in...
-    $fetchVootRole = get_user_meta($user->ID, "fetch_voot_role", TRUE);
-    if (TRUE === $fetchVootRole) {
+    if (TRUE === get_user_meta($user->ID, "fetch_voot_role", TRUE)) {
         return;
     }
 
     $config = parse_ini_file("config/vr.ini", TRUE);
+    if(!is_array($config) || empty($config)) {
+        $message = "[voot-roles] ERROR: configuration file is broken");
+        error_log($message);
+        die($message);
+    }
 
     $clientPath = $config['OAuth']['clientPath'];
     require_once $clientPath . DIRECTORY_SEPARATOR . "lib" . DIRECTORY_SEPARATOR . "_autoload.php";
@@ -119,7 +121,7 @@ function vr_set_role($cookie, WP_User $user)
 
     } catch (\OAuth\Client\ApiException $e) {
         // FIXME: we probably should just return, if it didn't work out...well
-        $message = "ERROR (" . $e->getMessage() . ")";
+        $message = "[voot-roles] ERROR: " . $e->getMessage();
         error_log($message);
         die($message);
     }
