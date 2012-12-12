@@ -92,8 +92,8 @@ function vr_set_role($cookie, WP_User $user)
     }
 
     $config = parse_ini_file("config/vr.ini", TRUE);
-    if(!is_array($config) || empty($config)) {
-        $message = "[voot-roles] ERROR: configuration file is broken");
+    if (!is_array($config) || empty($config)) {
+        $message = "[voot-roles] ERROR: configuration file is broken";
         error_log($message);
         die($message);
     }
