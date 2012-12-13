@@ -38,14 +38,21 @@ function vr_determine_return_uri()
 {
     // determine where the user wants to go after logging in...
     $returnUri = NULL;
-    if (array_key_exists("HTTP_REFERER", $_SERVER)) {
-        $referrer = $_SERVER['HTTP_REFERER'];
-        $query = parse_url($referrer, PHP_URL_QUERY);
-        if (FALSE !== $query && NULL !== $query) {
-            parse_str($query, $queryArray);
+    if (array_key_exists("HTTP_REFERER", $_SERVER) && !empty($_SERVER["HTTP_REFERER"])
+            && array_key_exists("HTTP_HOST", $_SERVER) && !empty($_SERVER["HTTP_HOST"])) {
+        $httpReferrer = $_SERVER['HTTP_REFERER'];
+        $httpHost = $_SERVER['HTTP_HOST'];
+        $httpReferrerQuery = parse_url($httpReferrer, PHP_URL_QUERY);
+        if (FALSE !== $httpReferrerQuery && NULL !== $httpReferrerQuery) {
+            parse_str($httpReferrerQuery, $queryArray);
             if (is_array($queryArray) && !empty($queryArray)) {
                 if (array_key_exists("redirect_to", $queryArray)) {
-                    $returnUri = urldecode($queryArray["redirect_to"]);
+                    // httpHost MUST be equal to redirect_to query host
+                    $redirectTo = urldecode($queryArray["redirect_to"]);
+                    $redirectToHost = parse_url($redirectTo, PHP_URL_HOST);
+                    if ($httpHost === $redirectToHost) {
+                        $returnUri = $redirectTo;
+                    }
                 }
             }
         }
@@ -93,7 +100,7 @@ function vr_set_role($cookie, WP_User $user)
 
     $config = parse_ini_file("config/vr.ini", TRUE);
     if (!is_array($config) || empty($config)) {
-        $message = "[voot-roles] ERROR: configuration file is broken";
+        $message = "[voot-roles] ERROR: configuration file is malformed";
         error_log($message);
         die($message);
     }
@@ -115,13 +122,36 @@ function vr_set_role($cookie, WP_User $user)
 
         $response = $client->makeRequest($apiEndpoint . "/groups/@me");
 
-        // FIXME: verify the response code/content from the VOOT service
-        $response = json_decode($response->getContent(), TRUE);
-        $groups = $response['entry'];
+        if (200 !== $response->getStatusCode()) {
+            $message = "[voot-roles] ERROR: unexpected status code from VOOT provider (" . $response->getStatusCode() . "): " . $response->getContent();
+            error_log($message);
+            die($message);
+        }
+
+        $content = $response->getContent();
+        if (empty($content)) {
+            $message = "[voot-roles] ERROR: empty response from VOOT provider";
+            error_log($message);
+            die($message);
+        }
+
+        $data = json_decode($content, TRUE);
+        if (NULL === $data || !is_array($data)) {
+            $message = "[voot-roles] ERROR: invalid/no JSON response from VOOT provider: " . $content;
+            error_log($message);
+            die($message);
+        }
+
+        if (!array_key_exists("entry", $data)) {
+            $message = "[voot-roles] ERROR: invalid JSON response from VOOT provider, missing 'entry': " . $content;
+            error_log($message);
+            die($message);
+        }
+        $groups = $data['entry'];
 
     } catch (\OAuth\Client\ApiException $e) {
         // FIXME: we probably should just return, if it didn't work out...well
-        $message = "[voot-roles] ERROR: " . $e->getMessage();
+        $message = "[voot-roles] OAuth ERROR: " . $e->getMessage();
         error_log($message);
         die($message);
     }
