@@ -120,6 +120,9 @@ function vr_set_role($cookie, WP_User $user)
 
         $apiEndpoint = $config['Voot']['apiEndpoint'];
 
+        $message = "[voot-roles] INFO: performing VOOT call";
+        error_log($message);
+
         $response = $client->makeRequest($apiEndpoint . "/groups/@me");
 
         if (200 !== $response->getStatusCode()) {
