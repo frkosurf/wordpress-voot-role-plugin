@@ -93,12 +93,13 @@ function vr_set_fetch_voot_role_meta($username, WP_User $user)
  */
 function vr_set_role($cookie, WP_User $user)
 {
-    // only fetch the VOOT role if the user just logged in...
-    error_log("[voot-roles] INFO: fetch_voot_role: " . var_export(get_user_meta($user->ID, "fetch_voot_role"), TRUE));
-
-    if (TRUE === get_user_meta($user->ID, "fetch_voot_role", TRUE)) {
+    $fetchVootRole = get_user_meta($user->ID, "fetch_voot_role", TRUE);
+    if(!$fetchVootRole) {
         return;
     }
+
+    // only fetch the VOOT role if the user just logged in...
+    error_log("[voot-roles] INFO: fetch_voot_role: " . var_export($fetchVootRole, TRUE));
 
     $config = parse_ini_file("config/vr.ini", TRUE);
     if (!is_array($config) || empty($config)) {
