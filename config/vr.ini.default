@@ -4,6 +4,7 @@ appId      = 'wordpress'
 
 [Voot]
 apiEndpoint = 'http://localhost/php-voot-proxy/voot.php'
+;apiEndpoint = 'https://api.surfconext.nl/v1/social/rest'
 
 ; set the group ID to the specific role. Membership of this group implies you
 ; will get that particular role
