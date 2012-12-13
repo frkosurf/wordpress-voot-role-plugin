@@ -38,8 +38,8 @@ function vr_determine_return_uri()
 {
     // determine where the user wants to go after logging in...
     $returnUri = NULL;
-    if (array_key_exists("HTTP_REFERER", $_SERVER) && !empty($_SERVER["HTTP_REFERER"])
-            && array_key_exists("HTTP_HOST", $_SERVER) && !empty($_SERVER["HTTP_HOST"])) {
+    if (array_key_exists("HTTP_REFERER", $_SERVER) && !empty($_SERVER['HTTP_REFERER'])
+            && array_key_exists("HTTP_HOST", $_SERVER) && !empty($_SERVER['HTTP_HOST'])) {
         $httpReferrer = $_SERVER['HTTP_REFERER'];
         $httpHost = $_SERVER['HTTP_HOST'];
         $httpReferrerQuery = parse_url($httpReferrer, PHP_URL_QUERY);
@@ -48,7 +48,7 @@ function vr_determine_return_uri()
             if (is_array($queryArray) && !empty($queryArray)) {
                 if (array_key_exists("redirect_to", $queryArray)) {
                     // httpHost MUST be equal to redirect_to query host
-                    $redirectTo = urldecode($queryArray["redirect_to"]);
+                    $redirectTo = urldecode($queryArray['redirect_to']);
                     $redirectToHost = parse_url($redirectTo, PHP_URL_HOST);
                     if ($httpHost === $redirectToHost) {
                         $returnUri = $redirectTo;
@@ -94,12 +94,9 @@ function vr_set_fetch_voot_role_meta($username, WP_User $user)
 function vr_set_role($cookie, WP_User $user)
 {
     $fetchVootRole = get_user_meta($user->ID, "fetch_voot_role", TRUE);
-    if(!$fetchVootRole) {
+    if (!$fetchVootRole) {
         return;
     }
-
-    // only fetch the VOOT role if the user just logged in...
-    error_log("[voot-roles] INFO: fetch_voot_role: " . var_export($fetchVootRole, TRUE));
 
     $config = parse_ini_file("config/vr.ini", TRUE);
     if (!is_array($config) || empty($config)) {
