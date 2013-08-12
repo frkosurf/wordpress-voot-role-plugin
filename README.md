@@ -1,7 +1,11 @@
 # DEPRECATED
-This module is no longer deemed needed as there is now a `ssp-voot-groups` 
-module that add the VOOT groups to the SAML attributes. This can then be 
-used with the SAML module of Wordpress:
+This module is no longer deemed needed as there is now a `ssp-voot-groups`
+module that add the VOOT groups to the SAML attributes. 
+
+See: https://github.com/fkooman/ssp-voot-groups/
+
+The group information that was added to the SAML attributes can then be used
+with the SAML module of Wordpress:
 
 See: http://wordpress.org/plugins/simplesamlphp-authentication/
 
