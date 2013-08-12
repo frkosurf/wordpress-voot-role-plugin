@@ -1,3 +1,10 @@
+# DEPRECATED
+This module is no longer deemed needed as there is now a `ssp-voot-groups` 
+module that add the VOOT groups to the SAML attributes. This can then be 
+used with the SAML module of Wordpress:
+
+See: http://wordpress.org/plugins/simplesamlphp-authentication/
+
 # Introduction
 This Wordpress plugin makes it possible to use VOOT membership information as 
 source for the role the user has in Wordpress.
